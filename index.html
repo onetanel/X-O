@@ -3,87 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>איקס עיגול</title>
+    <title>משחק איקס עיגול</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
-            align-items: center;
             justify-content: center;
-            height: 100vh;
+            align-items: center;
+            min-height: 100vh;
             margin: 0;
-            background-color: #f4f4f4;
+            background-color: #f4f4f9;
+            direction: rtl;
         }
-        .game-board {
+        h1 {
+            color: #333;
+            font-size: 2em;
+            text-align: center;
+        }
+        .container {
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .grid {
             display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(3, 100px);
-            gap: 5px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
         }
         .cell {
             width: 100px;
             height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2em;
             background-color: #fff;
             border: 2px solid #333;
+            font-size: 2.5em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .cell:hover {
+            background-color: #f0f0f0;
+        }
+        .status {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .reset-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .reset-button:hover {
+            background-color: #218838;
+        }
+        .success-image {
+            display: none;
+            margin-top: 10px;
+            max-width: 100%;
+            border-radius: 8px;
         }
     </style>
 </head>
 <body>
-    <div id="game" class="game-board"></div>
-    <script>
-        const gameBoard = document.getElementById("game");
-        let currentPlayer = "X";
-        let board = ["", "", "", "", "", "", "", "", ""];
 
-        function handleClick(index) {
-            if (board[index] === "") {
-                board[index] = currentPlayer;
-                renderBoard();
-                if (checkWinner()) {
-                    setTimeout(() => alert(currentPlayer + " ניצח!"), 10);
-                    resetGame();
-                } else if (board.every(cell => cell !== "")) {
-                    setTimeout(() => alert("תיקו!"), 10);
-                    resetGame();
-                }
-                currentPlayer = currentPlayer === "X" ? "O" : "X";
+<div class="container">
+    <h1>משחק איקס עיגול</h1>
+    <div class="status" id="status">שחקן X מתחיל</div>
+    <div class="grid" id="grid">
+        <div class="cell" onclick="makeMove(this, 0)"></div>
+        <div class="cell" onclick="makeMove(this, 1)"></div>
+        <div class="cell" onclick="makeMove(this, 2)"></div>
+        <div class="cell" onclick="makeMove(this, 3)"></div>
+        <div class="cell" onclick="makeMove(this, 4)"></div>
+        <div class="cell" onclick="makeMove(this, 5)"></div>
+        <div class="cell" onclick="makeMove(this, 6)"></div>
+        <div class="cell" onclick="makeMove(this, 7)"></div>
+        <div class="cell" onclick="makeMove(this, 8)"></div>
+    </div>
+    <button class="reset-button" onclick="resetGame()">התחל מחדש</button>
+    <img src="https://i.postimg.cc/Wz0TC0r0/image.png" alt="ניצחון!" class="success-image" id="success-image">
+</div>
+
+<script>
+    let currentPlayer = "X";
+    let gameActive = true;
+    let gameState = ["", "", "", "", "", "", "", "", ""];
+    const statusDisplay = document.getElementById("status");
+    const successImage = document.getElementById("success-image");
+
+    function makeMove(cell, index) {
+        if (gameState[index] === "" && gameActive) {
+            gameState[index] = currentPlayer;
+            cell.textContent = currentPlayer;
+            cell.style.backgroundColor = currentPlayer === "X" ? "#d1e7ff" : "#ffe6e6";
+            checkWinner();
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+            updateStatus();
+        }
+    }
+
+    function updateStatus() {
+        if (gameActive) {
+            statusDisplay.textContent = `תור השחקן: ${currentPlayer}`;
+        }
+    }
+
+    function checkWinner() {
+        const winningCombinations = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
+        
+        for (let combination of winningCombinations) {
+            const [a, b, c] = combination;
+            if (gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+                gameActive = false;
+                statusDisplay.textContent = `שחקן ${gameState[a]} ניצח!`;
+                successImage.style.display = "block"; // מציג את התמונה במקרה של ניצחון
+                return;
             }
         }
 
-        function renderBoard() {
-            gameBoard.innerHTML = "";
-            board.forEach((cell, index) => {
-                const cellElement = document.createElement("div");
-                cellElement.classList.add("cell");
-                cellElement.textContent = cell;
-                cellElement.addEventListener("click", () => handleClick(index));
-                gameBoard.appendChild(cellElement);
-            });
+        if (!gameState.includes("")) {
+            gameActive = false;
+            statusDisplay.textContent = "תיקו!";
         }
+    }
 
-        function checkWinner() {
-            const winningCombinations = [
-                [0, 1, 2], [3, 4, 5], [6, 7, 8],
-                [0, 3, 6], [1, 4, 7], [2, 5, 8],
-                [0, 4, 8], [2, 4, 6]
-            ];
-            return winningCombinations.some(combination =>
-                combination.every(index => board[index] === currentPlayer)
-            );
-        }
+    function resetGame() {
+        currentPlayer = "X";
+        gameActive = true;
+        gameState = ["", "", "", "", "", "", "", "", ""];
+        document.querySelectorAll(".cell").forEach(cell => {
+            cell.textContent = "";
+            cell.style.backgroundColor = "#fff";
+        });
+        successImage.style.display = "none"; // מסתיר את התמונה בעת איפוס המשחק
+        updateStatus();
+    }
+</script>
 
-        function resetGame() {
-            board = ["", "", "", "", "", "", "", "", ""];
-            currentPlayer = "X";
-            renderBoard();
-        }
-
-        renderBoard();
-    </script>
 </body>
 </html>
+
